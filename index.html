@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Automotive Hub POS</title>
+    <link rel="manifest" href="manifest.json" />
+    <style>
+        :root {
+            --bg: #0f172a;
+            --bg-2: #111827;
+            --panel: #1e293b;
+            --panel-2: #334155;
+            --accent: #f59e0b;
+            --accent-2: #fbbf24;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: #475569;
+            --shadow: rgba(15, 23, 42, 0.4);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 3px solid var(--accent);
+            padding: 18px 24px;
+            box-shadow: 0 6px 18px var(--shadow);
+        }
+
+        .header-inner {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 2vw, 2.4rem);
+            letter-spacing: 0.08em;
+            color: var(--accent);
+        }
+
+        .brand p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+
+        .status-chip {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: var(--accent-2);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .inventory-panel,
+        .cart-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 16px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 12px 25px rgba(15, 23, 42, 0.2);
+        }
+
+        .inventory-panel {
+            flex: 1.55;
+            padding: 18px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .cart-panel {
+            width: 420px;
+            min-width: 320px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .panel-header h2,
+        .panel-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--text);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+        .inventory-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            min-height: 0;
+            padding-right: 4px;
+        }
+
+        .inventory-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: rgba(51, 65, 85, 0.75);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .inventory-item:hover {
+            transform: translateY(-1px);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+
+        .item-details {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            word-break: break-word;
+        }
+
+        .item-meta {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .add-btn,
+        .qty-btn,
+        .checkout-btn,
+        .clear-btn {
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .add-btn:hover,
+        .qty-btn:hover,
+        .checkout-btn:hover,
+        .clear-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .add-btn {
+            background: linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+            color: #111827;
+            min-width: 90px;
+            padding: 10px 14px;
+        }
+
+        .add-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+            transform: none;
+        }
+
+        .cart-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 200px;
+            max-height: 340px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .cart-item {
+            background: rgba(51, 65, 85, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .cart-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cart-name {
+            font-size: 0.96rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .cart-meta {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+
+        .cart-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .qty-btn {
+            width: 28px;
+            height: 28px;
+            background: rgba(148, 163, 184, 0.14);
+            color: var(--text);
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .remove-btn {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .total-box {
+            margin-top: auto;
+            border-top: 2px dashed var(--border);
+            padding-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            font-size: 1.02rem;
+            padding: 15px 16px;
+        }
+
+        .clear-btn {
+            background: rgba(148, 163, 184, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: var(--text);
+            padding: 10px 12px;
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .field input,
+        .field textarea {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text);
+            padding: 10px 12px;
+            font: inherit;
+            resize: vertical;
+        }
+
+        .field input:focus,
+        .field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+        .bill-history {
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: rgba(51, 65, 85, 0.7);
+            color: var(--text);
+            font-size: 0.82rem;
+        }
+
+        .history-item small {
+            color: var(--muted);
+            display: block;
+        }
+
+        .empty-state {
+            color: var(--muted);
+            font-size: 0.9rem;
+            padding: 12px 8px;
+        }
+
+        @media (max-width: 980px) {
+            .app-shell {
+                flex-direction: column;
+            }
+
+            .inventory-panel,
+            .cart-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <h1>AUTOMOTIVE HUB POS</h1>
+                <p>Supervised by Waheed &amp; MAK | Digital Inventory System</p>
+            </div>
+            <div class="status-chip" id="online-status">Online</div>
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <section class="inventory-panel">
+            <div class="panel-header">
+                <h2>Stock Inventory</h2>
+            </div>
+
+            <input id="inventory-search" class="search-box" type="search" placeholder="Search parts or services..." />
+
+            <div id="inventory-list" class="inventory-list"></div>
+        </section>
+
+        <aside class="cart-panel">
+            <div class="panel-header">
+                <h3>Current Job Card</h3>
+                <button class="clear-btn" onclick="clearCart()">Clear Cart</button>
+            </div>
+
+            <div class="mini-grid">
+                <div class="field">
+                    <label for="customer-name">Customer</label>
+                    <input id="customer-name" type="text" placeholder="Customer / Shop" />
+                </div>
+                <div class="field">
+                    <label for="vehicle-no">Vehicle No.</label>
+                    <input id="vehicle-no" type="text" placeholder="ABC-123" />
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="job-note">Job Notes</label>
+                <textarea id="job-note" rows="3" placeholder="Example: Brake service, battery issue, AC leak check..."></textarea>
+            </div>
+
+            <div id="cart-list" class="cart-list"></div>
+
+            <div class="total-box">
+                <span>Total</span>
+                <span>PKR <span id="cart-total">0</span></span>
+            </div>
+
+            <button class="checkout-btn" onclick="checkout()">Complete &amp; Generate Bill</button>
+
+            <div>
+                <div class="panel-header">
+                    <h3>Recent Bills</h3>
+                </div>
+                <div id="bill-history" class="bill-history"></div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const STORAGE_KEYS = {
+            inventory: 'hubInventory',
+            cart: 'hubCart',
+            bills: 'hubBills'
+        };
+
+        const defaultInventory = [
+            { id: 1, name: '15A Blade Fuse', price: 30, stock: 100 },
+            { id: 2, name: 'H4 LED Headlight Pair', price: 3500, stock: 15 },
+            { id: 3, name: 'AGS Battery (60 Amp)', price: 14500, stock: 8 },
+            { id: 4, name: 'AC Gas Charging (R134a)', price: 4500, stock: 999 },
+            { id: 5, name: '4-Pin Relay (12V)', price: 450, stock: 30 },
+            { id: 6, name: 'Throttle Body Cleaner Spray', price: 800, stock: 25 },
+            { id: 7, name: 'Toyota CVT Fluid (4L)', price: 9500, stock: 12 },
+            { id: 8, name: 'Car Wash & Interior Detailing', price: 2500, stock: 999 },
+            { id: 9, name: 'Brake Pad Set (Front)', price: 6200, stock: 10 },
+            { id: 10, name: 'Engine Oil Filter', price: 1200, stock: 35 }
+        ];
+
+        let inventory = JSON.parse(localStorage.getItem(STORAGE_KEYS.inventory)) || defaultInventory;
+        let cart = JSON.parse(localStorage.getItem(STORAGE_KEYS.cart)) || [];
+
+        const inventorySearch = document.getElementById('inventory-search');
+
+        function persistInventory() {
+            localStorage.setItem(STORAGE_KEYS.inventory, JSON.stringify(inventory));
+        }
+
+        function persistCart() {
+            localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
+        }
+
+        function getCurrentUserInputs() {
+            return {
+                customer: document.getElementById('customer-name').value.trim(),
+                vehicleNo: document.getElementById('vehicle-no').value.trim(),
+                notes: document.getElementById('job-note').value.trim()
+            };
+        }
+
+        function formatCurrency(value) {
+            return Number(value).toLocaleString('en-PK', { maximumFractionDigits: 0 });
+        }
+
+        function renderInventory() {
+            const query = inventorySearch.value.trim().toLowerCase();
+            const list = document.getElementById('inventory-list');
+            const filtered = inventory.filter(item =>
+                item.name.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty-state">No matching stock items found.</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(item => `
+                <div class="inventory-item">
+                    <div class="item-details">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-meta">Stock: ${item.stock} | PKR ${formatCurrency(item.price)}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="add-btn" onclick="addToCart(${item.id})" ${item.stock <= 0 ? 'disabled' : ''}>
+                            ${item.stock <= 0 ? 'Out of Stock' : 'Add'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            persistInventory();
+        }
+
+        function addToCart(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item || item.stock <= 0) {
+                alert('Item Out of Stock!');
+                return;
+            }
+
+            const existing = cart.find(c => c.id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
+            }
+
+            item.stock -= 1;
+            persistInventory();
+            persistCart();
+            updateUI();
+        }
+
+        function changeQty(id, delta) {
+            const item = inventory.find(i => i.id === id);
+            const cartItem = cart.find(c => c.id === id);
+            if (!item || !cartItem) return;
+
+            const nextQty = cartItem.qty + delta;
+            if (nextQty <= 0) {
+                removeFromCart(id);
+                return;
+            }
+
+            const stockDifference = nextQty - cartItem.qty;
+            if (stockDifference > item.stock) {
+                alert('Not enough stock available for this quantity change.');
+                return;
+            }
+
+            cartItem.qty = nextQty;
+            item.stock -= stockDifference;
+            persistInventory();
+            persistCart();
+            updateUI();
+        }
+
+        function removeFromCart(id) {
+            const cartItem = cart.find(c => c.id === id);
+            const inventoryItem = inventory.find(i => i.id === id);
+            if (cartItem && inventoryItem) {
+                inventoryItem.stock += cartItem.qty;
+            }
+            cart = cart.filter(c => c.id !== id);
+            persistInventory();
+            persistCart();
+            updateUI();
+        }
+
+        function clearCart() {
+            if (cart.length === 0) {
+                return;
+            }
+
+            cart.forEach(item => {
+                const inventoryItem = inventory.find(i => i.id === item.id);
+                if (inventoryItem) {
+                    inventoryItem.stock += item.qty;
+                }
+            });
+
+            cart = [];
+            persistInventory();
+            persistCart();
+            updateUI();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            const totalEl = document.getElementById('cart-total');
+
+            if (cart.length === 0) {
+                list.innerHTML = '<div class="empty-state">Your job card is empty. Add items from inventory.</div>';
+                totalEl.textContent = '0';
+                return;
+            }
+
+            let total = 0;
+            list.innerHTML = cart.map(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                return `
+                    <div class="cart-item">
+                        <div class="cart-main">
+                            <div class="cart-name">${item.name}</div>
+                            <div class="cart-meta">PKR ${formatCurrency(itemTotal)} total</div>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                            <span>${item.qty}</span>
+                            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            totalEl.textContent = formatCurrency(total);
+        }
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('AutomotiveHubPOSDB', 1);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('bills')) {
+                        const store = db.createObjectStore('bills', { keyPath: 'id' });
+                        store.createIndex('date', 'date', { unique: false });
+                    }
+                };
+
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function saveBillToDB(bill) {
+            try {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('bills', 'readwrite');
+                    const store = tx.objectStore('bills');
+                    const request = store.put(bill);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => reject(request.error);
+                });
+            } catch (error) {
+                console.warn('IndexedDB unavailable, using localStorage fallback.', error);
+                return false;
+            }
+        }
+
+        function getSavedBillsFromStorage() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEYS.bills)) || [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        async function saveBill(bill) {
+            const bills = getSavedBillsFromStorage();
+            bills.unshift(bill);
+            localStorage.setItem(STORAGE_KEYS.bills, JSON.stringify(bills.slice(0, 20)));
+            await saveBillToDB(bill);
+        }
+
+        function renderBillHistory() {
+            const container = document.getElementById('bill-history');
+            const bills = getSavedBillsFromStorage();
+
+            if (!bills || bills.length === 0) {
+                container.innerHTML = '<div class="empty-state">No completed bills yet.</div>';
+                return;
+            }
+
+            container.innerHTML = bills.slice(0, 8).map((bill) => `
+                <div class="history-item">
+                    <div>
+                        <strong>#${bill.id}</strong>
+                        <small>${bill.date}</small>
+                    </div>
+                    <div>
+                        <strong>PKR ${formatCurrency(bill.total)}</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function printBill(bill) {
+            const receiptHtml = `
+                <html>
+                <head>
+                    <title>Invoice - Automotive Hub</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 20px;
+                            color: #111827;
+                        }
+                        h2 {
+                            text-align: center;
+                            margin: 0 0 10px;
+                            color: #f59e0b;
+                        }
+                        .meta {
+                            margin: 12px 0 20px;
+                            line-height: 1.7;
+                            font-size: 13px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 10px;
+                        }
+                        th, td {
+                            border-bottom: 1px solid #d1d5db;
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        .total {
+                            margin-top: 18px;
+                            font-size: 20px;
+                            font-weight: 700;
+                            text-align: right;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>AUTOMOTIVE HUB</h2>
+                    <div class="meta">
+                        <strong>Bill ID:</strong> ${bill.id}<br>
+                        <strong>Date:</strong> ${bill.date}<br>
+                        <strong>Customer:</strong> ${bill.customer || 'Walk-in'}<br>
+                        <strong>Vehicle:</strong> ${bill.vehicleNo || 'N/A'}<br>
+                        <strong>Notes:</strong> ${bill.notes || 'No notes'}
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${bill.items.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.qty}</td>
+                                    <td>PKR ${formatCurrency(item.price)}</td>
+                                    <td>PKR ${formatCurrency(item.price * item.qty)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="total">Total: PKR ${formatCurrency(bill.total)}</div>
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('Popup blocked. Please allow pop-ups to print the receipt.');
+                return;
+            }
+            printWindow.document.write(receiptHtml);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        async function checkout() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const inputs = getCurrentUserInputs();
+            const bill = {
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                customer: inputs.customer || 'Walk-in Customer',
+                vehicleNo: inputs.vehicleNo || 'N/A',
+                notes: inputs.notes || 'No notes',
+                total,
+                items: cart.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    qty: item.qty,
+                    price: item.price
+                }))
+            };
+
+            await saveBill(bill);
+            printBill(bill);
+            alert(`Bill generated successfully!\nTotal Amount: PKR ${formatCurrency(total)}`);
+
+            cart = [];
+            persistCart();
+            updateUI();
+        }
+
+        function updateUI() {
+            renderInventory();
+            renderCart();
+            renderBillHistory();
+        }
+
+        inventorySearch.addEventListener('input', renderInventory);
+
+        function updateOnlineStatus() {
+            const statusEl = document.getElementById('online-status');
+            const isOnline = navigator.onLine;
+            statusEl.textContent = isOnline ? 'Online' : 'Offline';
+            statusEl.style.borderColor = isOnline ? 'rgba(34, 197, 94, 0.6)' : 'rgba(239, 68, 68, 0.6)';
+            statusEl.style.color = isOnline ? '#86efac' : '#fecaca';
+            statusEl.style.background = isOnline ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)';
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(() => console.log('Service Worker registered successfully.'))
+                    .catch((error) => console.error('Service Worker registration failed:', error));
+            });
+        }
+
+        updateOnlineStatus();
+        updateUI();
+    </script>
+</body>
+</html>

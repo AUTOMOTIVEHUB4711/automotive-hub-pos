@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Automotive Hub POS icon">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="48" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="170" fill="none" stroke="url(#accent)" stroke-width="26"/>
+  <path d="M148 280h216v42H148zm36-98h144l26 102H158zm22 124h100v30H206zm110 0h64v30h-64zm-164-6h32v52h-32zm224 0h32v52h-32z" fill="url(#accent)"/>
+  <circle cx="194" cy="340" r="24" fill="#f8fafc"/>
+  <circle cx="318" cy="340" r="24" fill="#f8fafc"/>
+  <path d="M120 160h272l-20 44H140z" fill="#f8fafc" opacity="0.9"/>
+  <text x="256" y="105" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#f8fafc">HUB</text>
+</svg>
